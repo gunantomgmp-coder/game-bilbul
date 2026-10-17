@@ -442,11 +442,11 @@ try{const r=localStorage.getItem(LSKEY);if(r){const p=JSON.parse(r);if(p&&typeof
 function save(){try{localStorage.setItem(LSKEY,JSON.stringify(S));}catch(e){}}
 function shuffle(a){a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
 function toast(m){const t=$("#toast");t.textContent=m;t.classList.add("on");clearTimeout(t._h);t._h=setTimeout(()=>t.classList.remove("on"),2600);}
-let backTo="map";
-function show(id){$$(".scr").forEach(s=>s.classList.remove("on"));$("#scr-"+id).classList.add("on");window.scrollTo(0,0);}
+let backTo="open", cur="open";
+function show(id){$$(".scr").forEach(s=>s.classList.remove("on"));$("#scr-"+id).classList.add("on");window.scrollTo(0,0);cur=id;}
 document.addEventListener("click",e=>{const n=e.target.closest("[data-nav]");if(!n)return;
   const t=n.dataset.nav;
-  if(t==="back")show(backTo);else{if(t!=="game")backTo=t;show(t);if(t==="map")renderMap();if(t==="badges")renderBadges();if(t==="progress")renderProgress();}
+  if(t==="back")show(backTo);else{if(t!=="game")backTo=cur;show(t);if(t==="map")renderMap();if(t==="badges")renderBadges();if(t==="progress")renderProgress();}
 });
 /* ================= SUARA (WebAudio, tanpa file) ================= */
 let AC=null;
