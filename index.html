@@ -1,0 +1,783 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Petualangan Bilangan Bulat — Game Edukasi Matematika SMP</title>
+<meta name="description" content="Game edukasi matematika SMP Kelas 7: berpetualang melewati 6 wilayah, mengumpulkan kristal, menaklukkan bilangan bulat! Satu file, offline.">
+<style>
+:root{
+  --blue:#2563eb; --blue-d:#1e40af; --purple:#7c3aed; --purple-d:#5b21b6;
+  --green:#16a34a; --green-d:#166534; --yellow:#facc15; --yellow-d:#a16207;
+  --ink:#1e1b4b; --mut:#5b5b8a; --bg1:#eef2ff; --bg2:#f5f3ff;
+  --card:#ffffff; --line:#ddd6fe;
+  --ok:#16a34a; --bad:#dc2626;
+  --r:18px;
+  --font:system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+  --mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{font-size:16px}
+body{font-family:var(--font);color:var(--ink);min-height:100vh;line-height:1.6;
+  background:
+    radial-gradient(1000px 500px at 90% -5%, rgba(124,58,237,.12), transparent 60%),
+    radial-gradient(900px 500px at 5% 10%, rgba(37,99,235,.12), transparent 60%),
+    radial-gradient(700px 500px at 50% 110%, rgba(22,163,74,.10), transparent 60%),
+    linear-gradient(180deg,var(--bg1),var(--bg2));}
+::selection{background:var(--yellow)}
+:focus-visible{outline:3px solid var(--purple);outline-offset:2px;border-radius:8px}
+.wrap{max-width:920px;margin:0 auto;padding:0 18px 48px}
+.scr{display:none}
+.scr.on{display:block;animation:fadeUp .35s ease}
+@keyframes fadeUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
+@media (prefers-reduced-motion:reduce){.scr.on{animation:none}*{animation:none!important;transition:none!important}}
+.hero{text-align:center;padding:44px 10px 10px}
+.hero .art{font-size:72px;filter:drop-shadow(0 6px 12px rgba(124,58,237,.3))}
+h1.gtitle{font-size:clamp(30px,6vw,50px);font-weight:900;line-height:1.15;margin:10px 0;
+  background:linear-gradient(94deg,var(--blue-d),var(--purple) 55%,var(--green-d));
+  -webkit-background-clip:text;background-clip:text;color:transparent}
+.sub{color:var(--mut);font-size:16px;max-width:560px;margin:0 auto}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;font-family:var(--font);
+  font-weight:800;font-size:16px;cursor:pointer;border:none;min-height:52px;padding:14px 30px;border-radius:16px;
+  color:#fff;background:linear-gradient(135deg,var(--blue),var(--purple));
+  box-shadow:0 6px 18px rgba(124,58,237,.35);transition:transform .15s,box-shadow .15s;text-decoration:none}
+.btn:hover{transform:translateY(-2px);box-shadow:0 10px 24px rgba(124,58,237,.45)}
+.btn:active{transform:translateY(0)}
+.btn.big{font-size:19px;padding:18px 48px;min-height:62px}
+.btn.green{background:linear-gradient(135deg,var(--green),#22c55e);box-shadow:0 6px 18px rgba(22,163,74,.35);color:#fff}
+.btn.yellow{background:linear-gradient(135deg,var(--yellow),#fde047);color:#422006;box-shadow:0 6px 18px rgba(250,204,21,.4)}
+.btn.ghost{background:#fff;color:var(--ink);border:2px solid var(--line);box-shadow:none}
+.btn.ghost:hover{border-color:var(--purple)}
+.btn.red{background:linear-gradient(135deg,#dc2626,#ef4444);box-shadow:0 6px 18px rgba(220,38,38,.3)}
+.btn.sm{padding:10px 20px;font-size:14.5px;min-height:46px;border-radius:12px}
+.btn:disabled{opacity:.45;cursor:not-allowed;transform:none}
+.btnrow{display:flex;flex-wrap:wrap;gap:10px;margin:14px 0;justify-content:center}
+.card{background:var(--card);border:2px solid var(--line);border-radius:var(--r);padding:22px;margin:16px 0;box-shadow:0 8px 24px rgba(76,29,149,.08)}
+.card h3{font-size:18px;margin-bottom:8px}
+.card p{color:var(--mut);font-size:15px}
+.card p b{color:var(--ink)}
+.center{text-align:center}.mt{margin-top:14px}.hidden{display:none!important}
+.kv{display:grid;grid-template-columns:auto 1fr;gap:6px 14px;font-size:15px;margin:10px 0;text-align:left}
+.kv dt{color:var(--mut)}.kv dd{color:var(--ink);font-weight:600}
+.hud{position:sticky;top:0;z-index:40;background:rgba(255,255,255,.94);backdrop-filter:blur(8px);border-bottom:2px solid var(--line)}
+.hud .inner{max-width:920px;margin:0 auto;padding:8px 18px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;font-size:14px;font-weight:700}
+.hud .pill{background:var(--bg1);border:1px solid var(--line);border-radius:99px;padding:5px 12px;white-space:nowrap}
+.hud .lives{letter-spacing:2px}
+.hud .sp{flex:1}
+.iconbtn{font-size:20px;background:#fff;border:2px solid var(--line);border-radius:12px;min-width:46px;min-height:46px;cursor:pointer}
+.timerbar{height:8px;background:#e5e7eb;border-radius:99px;overflow:hidden;margin:6px 0}
+.timerbar i{display:block;height:100%;background:linear-gradient(90deg,var(--green),var(--yellow));border-radius:99px;transition:width 1s linear}
+.mapnode{display:flex;gap:16px;align-items:center;background:#fff;border:2px solid var(--line);border-radius:var(--r);padding:18px;margin:12px 0;box-shadow:0 6px 18px rgba(76,29,149,.07);position:relative}
+.mapnode .ico{font-size:44px;flex:none;width:76px;height:76px;display:grid;place-items:center;border-radius:20px;background:linear-gradient(135deg,var(--bg1),var(--bg2));border:2px solid var(--line)}
+.mapnode h3{font-size:18px}
+.mapnode>div{flex:1;min-width:0}
+.mapnode p{font-size:13.5px;color:var(--mut)}
+.mapnode .stars{font-size:15px}
+.mapnode.locked{opacity:.55;filter:grayscale(.7)}
+.mapnode.done{border-color:var(--green)}
+.mapnode .go{margin-left:auto;flex:none}
+.mapnode .lvnum{position:absolute;top:-12px;left:14px;background:var(--purple);color:#fff;font-size:12px;font-weight:800;border-radius:99px;padding:3px 12px}
+.qtext{font-size:19px;font-weight:700;line-height:1.55;margin:6px 0 4px}
+.qctx{font-size:15px;color:var(--mut);margin-bottom:6px}
+.opts{display:grid;gap:10px;margin-top:14px}
+.opt{text-align:left;font-family:var(--font);font-size:16px;font-weight:600;color:var(--ink);background:#fff;border:2px solid var(--line);border-radius:14px;padding:14px 16px;cursor:pointer;min-height:52px;transition:border-color .15s,background .15s}
+.opt:hover:not(:disabled){border-color:var(--purple);background:#faf5ff}
+.opt:disabled{cursor:default}
+.opt.ok{border-color:var(--ok);background:#f0fdf4}
+.opt.no{border-color:var(--bad);background:#fef2f2}
+.tfrow{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:14px}
+.tfib{font-size:19px;font-weight:800;min-height:64px;border-radius:14px;border:2px solid var(--line);background:#fff;cursor:pointer;font-family:var(--font);color:var(--ink)}
+.tfib:hover:not(:disabled){border-color:var(--purple)}
+.tfib.ok{border-color:var(--ok);background:#f0fdf4}
+.tfib.no{border-color:var(--bad);background:#fef2f2}
+.chips{display:flex;flex-wrap:wrap;gap:10px;margin:12px 0}
+.chip{font-family:var(--mono);font-size:17px;font-weight:700;min-width:58px;min-height:52px;padding:10px 14px;border-radius:12px;border:2px solid var(--line);background:#fff;cursor:pointer;color:var(--ink)}
+.chip:hover:not(:disabled){border-color:var(--purple)}
+.chip.used{opacity:.3;pointer-events:none}
+.slotrow{display:flex;flex-wrap:wrap;gap:8px;min-height:66px;border:2px dashed var(--line);border-radius:12px;padding:8px;margin:10px 0;background:#faf5ff}
+.slot{font-family:var(--mono);font-size:16px;font-weight:700;padding:10px 14px;border-radius:10px;background:linear-gradient(135deg,var(--blue),var(--purple));color:#fff;cursor:pointer;border:none;min-height:48px}
+.fillrow{display:flex;gap:10px;margin-top:14px;flex-wrap:wrap}
+input[type=text],input[type=number]{font-family:var(--mono);font-size:18px;font-weight:700;color:var(--ink);background:#fff;border:2px solid var(--line);border-radius:12px;padding:12px 14px;min-height:52px}
+input:focus{border-color:var(--purple);outline:none}
+.fb{border-radius:14px;padding:16px 18px;margin:14px 0;font-size:15.5px;line-height:1.65;display:none}
+.fb.show{display:block;animation:fadeUp .3s ease}
+.fb.good{background:#f0fdf4;border:2px solid var(--green)}
+.fb.badd{background:#fefce8;border:2px solid var(--yellow-d)}
+.bossbar{background:#fff;border:2px solid var(--line);border-radius:14px;padding:12px 16px;margin:12px 0}
+.bossbar .bar{height:16px;background:#e5e7eb;border-radius:99px;overflow:hidden;margin-top:6px}
+.bossbar .bar i{display:block;height:100%;background:linear-gradient(90deg,#dc2626,#f97316);border-radius:99px;transition:width .5s}
+.shake{animation:shake .4s}
+@keyframes shake{0%,100%{transform:none}25%{transform:translateX(-8px)}50%{transform:translateX(8px)}75%{transform:translateX(-5px)}}
+.badges{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin:14px 0}
+@media(max-width:600px){.badges{grid-template-columns:1fr}}
+.badge{background:#fff;border:2px solid var(--line);border-radius:var(--r);padding:20px;text-align:center}
+.badge .em{font-size:52px}
+.badge.got{border-color:var(--yellow);box-shadow:0 0 22px rgba(250,204,21,.35)}
+.badge.lock{opacity:.5;filter:grayscale(.8)}
+.badge h4{font-size:16px;margin:8px 0 4px}
+.overlay{position:fixed;inset:0;background:rgba(30,27,75,.6);z-index:80;display:none;place-items:center;padding:20px}
+.overlay.on{display:grid}
+.sheet{background:#fff;border-radius:22px;padding:28px;max-width:420px;width:100%;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,.3)}
+.sheet h3{font-size:22px;margin-bottom:6px}
+.starsbig{font-size:44px;letter-spacing:6px;margin:8px 0}
+.award{position:fixed;inset:0;z-index:90;display:none;place-items:center;background:rgba(30,27,75,.65);padding:20px}
+.award.on{display:grid}
+.award .box{background:#fff;border-radius:24px;padding:34px;text-align:center;max-width:380px;animation:pop .45s ease;border:3px solid var(--yellow)}
+@keyframes pop{0%{transform:scale(.6);opacity:0}70%{transform:scale(1.06)}100%{transform:scale(1);opacity:1}}
+.award .em{font-size:72px}
+.toast{position:fixed;left:50%;bottom:26px;transform:translateX(-50%);background:var(--ink);color:#fff;font-weight:700;padding:12px 22px;border-radius:99px;z-index:95;display:none;box-shadow:0 8px 24px rgba(0,0,0,.3);max-width:90vw;text-align:center}
+.toast.on{display:block;animation:fadeUp .3s}
+table.rec{width:100%;border-collapse:collapse;font-size:14px;margin:10px 0;background:#fff;border-radius:12px;overflow:hidden}
+table.rec th,table.rec td{border:1px solid var(--line);padding:9px 10px;text-align:left}
+table.rec th{background:var(--bg1)}
+.setrow{display:flex;align-items:center;justify-content:space-between;gap:12px;background:#fff;border:2px solid var(--line);border-radius:14px;padding:14px 18px;margin:10px 0;font-weight:600}
+.switch{position:relative;width:58px;height:32px;flex:none}
+.switch input{opacity:0;width:100%;height:100%;position:absolute;cursor:pointer;margin:0}
+.switch .tr{position:absolute;inset:0;background:#d1d5db;border-radius:99px;transition:.2s}
+.switch .tr::after{content:"";position:absolute;top:4px;left:4px;width:24px;height:24px;background:#fff;border-radius:50%;transition:.2s;box-shadow:0 2px 6px rgba(0,0,0,.25)}
+.switch input:checked+.tr{background:var(--green)}
+.switch input:checked+.tr::after{left:30px}
+.footer{margin:44px 0 0;text-align:center;color:var(--mut);font-size:13px}
+.footer b{color:var(--ink)}
+.matchcol{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:14px}
+.mcard{font-family:var(--mono);font-weight:700;font-size:16px;min-height:60px;border-radius:12px;border:2px solid var(--line);background:#fff;color:var(--ink);cursor:pointer;padding:8px}
+.mcard.sel{border-color:var(--yellow-d);background:#fefce8}
+.mcard.done{border-color:var(--ok);background:#f0fdf4;cursor:default}
+@media(max-width:520px){
+  .hud .inner{font-size:12.5px;gap:6px}
+  .hud .pill{padding:4px 9px}
+  .qtext{font-size:17px}
+  .mapnode{flex-wrap:wrap}
+  .mapnode .ico{font-size:34px;width:60px;height:60px}
+  .mapnode>div{flex:1 1 calc(100% - 92px)}
+  .mapnode .go{flex:1 1 100%;margin:12px 0 0}
+  .mapnode .go .btn{width:100%}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<!-- ===== HALAMAN PEMBUKA ===== -->
+<div class="scr" id="scr-open">
+  <div class="hero">
+    <div class="art">🗺️💎⚔️</div>
+    <h1 class="gtitle">PETUALANGAN<br>BILANGAN BULAT</h1>
+    <p class="sub mt">Seorang penjelajah pemberani membutuhkan bantuanmu! Lewati <b>6 wilayah misterius</b>, kumpulkan <b>Kristal Matematika</b>, kalahkan <b>Raja Kegelapan Minus</b> di kastel terakhir, dan jadilah <b>Master Bilangan Bulat</b>!</p>
+    <div class="card" style="max-width:520px;margin:18px auto;text-align:left">
+      <div class="kv">
+        <dt>🗺️</dt><dd>6 wilayah • 48+ tantangan</dd>
+        <dt>💎</dt><dd>Kumpulkan kristal &amp; lencana</dd>
+        <dt>❤️</dt><dd>3 nyawa setiap wilayah</dd>
+        <dt>🏆</dt><dd>Bintang, kombo &amp; bonus kecepatan</dd>
+      </div>
+    </div>
+    <div class="btnrow">
+      <button class="btn big" id="btnStart">🚀 MULAI PETUALANGAN</button>
+    </div>
+    <div class="btnrow">
+      <button class="btn ghost sm" data-nav="how">📖 Petunjuk</button>
+      <button class="btn ghost sm" data-nav="settings">⚙️ Pengaturan</button>
+    </div>
+    <p class="sub" id="welcomeBack" style="margin-top:10px"></p>
+  </div>
+  <div class="footer"><b>Petualangan Bilangan Bulat</b> • Matematika SMP Kelas 7 • Fase D<br>Dibuat untuk <b>Pak Gun</b> • Satu file HTML mandiri — offline penuh<br>© 2026 GezyTech App • Dikembangkan oleh PakGun</div>
+</div>
+
+<!-- ===== PROFIL PEMAIN ===== -->
+<div class="scr" id="scr-profile">
+  <div class="hero"><div class="art">🤠</div>
+    <h1 class="gtitle" style="font-size:clamp(26px,5vw,38px)">Siapa Penjelajahnya?</h1>
+    <p class="sub">Tulis nama panggilanmu, Penjelajah. Namamu akan terukir di Papan Kristal!</p>
+  </div>
+  <div class="card center" style="max-width:440px;margin:18px auto">
+    <label for="inpName" style="font-weight:700">Nama pemain</label>
+    <div class="fillrow" style="justify-content:center">
+      <input type="text" id="inpName" maxlength="16" placeholder="cth: Bima" style="flex:1;min-width:200px" aria-label="Nama pemain">
+    </div>
+    <div class="btnrow"><button class="btn green big" id="btnGoMap">🗺️ Masuk ke Peta!</button></div>
+    <p class="sub" style="font-size:13px">Progres tersimpan otomatis di perangkat ini. Tanpa login, tanpa internet.</p>
+  </div>
+</div>
+
+<!-- ===== PETA PETUALANGAN ===== -->
+<div class="scr" id="scr-map">
+  <div class="hero" style="padding-top:26px"><div class="art">🗺️</div>
+    <h1 class="gtitle" style="font-size:clamp(26px,5vw,38px)">Peta Petualangan</h1>
+    <p class="sub" id="mapHello"></p>
+  </div>
+  <div id="mapList"></div>
+  <div class="btnrow">
+    <button class="btn ghost sm" data-nav="badges">🏅 Lencanaku</button>
+    <button class="btn ghost sm" data-nav="progress">📊 Rekap Progres</button>
+    <button class="btn ghost sm" data-nav="how">📖 Petunjuk</button>
+    <button class="btn ghost sm" data-nav="settings">⚙️ Pengaturan</button>
+  </div>
+</div>
+
+<!-- ===== PETUNJUK ===== -->
+<div class="scr" id="scr-how">
+  <div class="hero" style="padding-top:26px"><div class="art">📖</div>
+    <h1 class="gtitle" style="font-size:clamp(26px,5vw,38px)">Petunjuk Main</h1></div>
+  <div class="card"><h3>🎯 Misi</h3>
+    <p>Selesaikan 8 tantangan di setiap wilayah untuk membuka wilayah berikutnya dan mengumpulkan <b>💎 Kristal Matematika</b>.</p></div>
+  <div class="card"><h3>🎮 Cara menjawab</h3>
+    <div class="kv">
+      <dt>👆</dt><dd>Ketuk pilihan jawaban / tombol <b>Benar</b>–<b>Salah</b></dd>
+      <dt>🔢</dt><dd>Ketuk keping bilangan untuk <b>mengurutkan</b>, ketuk lagi untuk membatalkan</dd>
+      <dt>📍</dt><dd>Ketuk titik pada <b>garis bilangan</b>, lalu tekan <b>Kunci Jawaban</b></dd>
+      <dt>🔗</dt><dd>Ketuk kartu operasi lalu kartu hasilnya untuk <b>mencocokkan</b></dd>
+      <dt>⌨️</dt><dd>Ketik angka lalu tekan <b>Jawab</b></dd>
+    </div></div>
+  <div class="card"><h3>⚖️ Aturan main</h3>
+    <div class="kv">
+      <dt>⭐</dt><dd>Jawaban benar = <b>100 poin</b></dd>
+      <dt>⚡</dt><dd>Soal berwaktu: bonus kecepatan sampai <b>+50</b></dd>
+      <dt>🔥</dt><dd>3 jawaban benar beruntun = <b>Kombo +30</b></dd>
+      <dt>❤️</dt><dd>3 nyawa per wilayah — salah mengurangi 1 nyawa</dd>
+      <dt>🌟</dt><dd>Bintang 1–3 sesuai ketepatan; kalah tidak menghapus progres</dd>
+    </div></div>
+  <div class="btnrow"><button class="btn" data-nav="back">← Kembali</button></div>
+</div>
+
+<!-- ===== PERMAINAN ===== -->
+<div class="scr" id="scr-game">
+  <div class="hud"><div class="inner">
+    <span class="pill" id="hName">🤠</span>
+    <span class="pill" id="hLevel">🗺️</span>
+    <span class="pill lives" id="hLives">❤️❤️❤️</span>
+    <span class="pill">⭐ <span id="hScore">0</span></span>
+    <span class="pill hidden" id="hCombo">🔥x<span id="hComboN">0</span></span>
+    <span class="sp"></span>
+    <button class="iconbtn" id="btnPause" aria-label="Jeda">⏸️</button>
+    <button class="iconbtn" id="btnMute" aria-label="Suara">🔊</button>
+  </div></div>
+  <div class="wrap" style="padding-top:14px">
+    <div class="timerbar hidden" id="timerWrap"><i id="timerFill"></i></div>
+    <div class="bossbar hidden" id="bossWrap"><b>👹 Raja Kegelapan Minus</b><div class="bar"><i id="bossFill" style="width:100%"></i></div></div>
+    <div class="card">
+      <div class="qctx" id="qCtx"></div>
+      <div class="qtext" id="qText"></div>
+      <div id="qArea"></div>
+      <div class="fb" id="qFb" role="status" aria-live="polite"></div>
+      <div class="btnrow"><button class="btn green hidden" id="btnNext">Lanjut ▶</button></div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== HASIL LEVEL ===== -->
+<div class="scr" id="scr-result">
+  <div class="hero" style="padding-top:26px"><div class="art" id="resArt">🏆</div>
+    <h1 class="gtitle" style="font-size:clamp(26px,5vw,38px)" id="resTitle">Wilayah Tuntas!</h1></div>
+  <div class="card center" style="max-width:520px;margin:0 auto">
+    <div class="starsbig" id="resStars">★★★</div>
+    <div class="kv" style="max-width:380px;margin:0 auto">
+      <dt>🤠 Pemain</dt><dd id="resName">–</dd>
+      <dt>🗺️ Wilayah</dt><dd id="resLevel">–</dd>
+      <dt>✅ Benar</dt><dd id="resBenar">–</dd>
+      <dt>❌ Salah</dt><dd id="resSalah">–</dd>
+      <dt>🎯 Ketepatan</dt><dd id="resAcc">–</dd>
+      <dt>⭐ Skor</dt><dd id="resScore">–</dd>
+      <dt>⏱️ Waktu</dt><dd id="resTime">–</dd>
+      <dt>💎 Kristal</dt><dd id="resCrystal">–</dd>
+    </div>
+    <div class="card mt" id="resReview" style="text-align:left"></div>
+    <div class="btnrow">
+      <button class="btn yellow" id="btnRetry">🔄 Ulangi Level</button>
+      <button class="btn green" id="btnNextLevel">Lanjutkan Petualangan ▶</button>
+    </div>
+    <div class="btnrow"><button class="btn ghost sm" data-nav="map">🗺️ Peta</button></div>
+  </div>
+</div>
+
+<!-- ===== LENCANA ===== -->
+<div class="scr" id="scr-badges">
+  <div class="hero" style="padding-top:26px"><div class="art">🏅</div>
+    <h1 class="gtitle" style="font-size:clamp(26px,5vw,38px)">Koleksi Lencana</h1>
+    <p class="sub">Lencana bukti kehebatanmu sebagai penjelajah!</p></div>
+  <div class="badges" id="badgeGrid"></div>
+  <div class="btnrow"><button class="btn" data-nav="back">← Kembali</button></div>
+</div>
+
+<!-- ===== REKAP PROGRES ===== -->
+<div class="scr" id="scr-progress">
+  <div class="hero" style="padding-top:26px"><div class="art">📊</div>
+    <h1 class="gtitle" style="font-size:clamp(26px,5vw,38px)">Rekap Progres</h1>
+    <p class="sub" id="progHello"></p></div>
+  <div class="card"><div id="progTable"></div></div>
+  <div class="btnrow"><button class="btn" data-nav="back">← Kembali</button></div>
+</div>
+
+<!-- ===== PENGATURAN ===== -->
+<div class="scr" id="scr-settings">
+  <div class="hero" style="padding-top:26px"><div class="art">⚙️</div>
+    <h1 class="gtitle" style="font-size:clamp(26px,5vw,38px)">Pengaturan</h1></div>
+  <div class="setrow"><span>🔊 Efek suara</span><label class="switch"><input type="checkbox" id="setSound" checked><span class="tr"></span></label></div>
+  <div class="setrow"><span>✨ Animasi</span><label class="switch"><input type="checkbox" id="setAnim" checked><span class="tr"></span></label></div>
+  <div class="card"><h3>🗑️ Atur ulang progres</h3>
+    <p>Hapus nama, skor, bintang, dan lencana dari perangkat ini. Tidak dapat dibatalkan!</p>
+    <div class="btnrow" style="justify-content:flex-start"><button class="btn red sm" id="btnReset">Atur Ulang Progres</button></div></div>
+  <div class="btnrow"><button class="btn" data-nav="back">← Kembali</button></div>
+</div>
+
+</div><!-- /wrap -->
+
+<!-- ===== OVERLAY JEDA ===== -->
+<div class="overlay" id="ovPause"><div class="sheet">
+  <h3>⏸️ Jeda</h3>
+  <p style="color:var(--mut)">Istirahat sebentar, Penjelajah. Progres level ini aman.</p>
+  <div class="btnrow" style="flex-direction:column;align-items:stretch">
+    <button class="btn green" id="btnResume">▶️ Lanjutkan</button>
+    <button class="btn ghost" id="btnRestartLevel">🔄 Ulangi Level</button>
+    <button class="btn ghost" id="btnQuitMap">🗺️ Keluar ke Peta</button>
+    <button class="btn ghost" id="btnPauseMute">🔊 Suara: Nyala</button>
+  </div>
+</div></div>
+
+<!-- ===== POPUP LENCANA ===== -->
+<div class="award" id="ovAward"><div class="box">
+  <div class="em" id="awEm">🏅</div>
+  <h3 id="awName">Lencana!</h3>
+  <p style="color:var(--mut)" id="awDesc"></p>
+  <div class="btnrow"><button class="btn yellow" id="awOk">Keren! 🎉</button></div>
+</div></div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+"use strict";
+/* ================= BANK SOAL — semua kunci dihitung & diverifikasi ================= */
+const LEVELS=[
+{id:1,icon:"🚪",name:"Gerbang Angka",desc:"Kenali bilangan positif, negatif, dan nol. Bandingkan & urutkan!",
+ materi:"Bilangan positif, negatif, nol • Membandingkan • Mengurutkan",qs:[
+ {t:"mc",topik:"Mengenal bilangan negatif",q:"Manakah yang merupakan <b>bilangan bulat negatif</b>?",opts:["−7","7","0","1/2"],ans:0,why:"Negatif = bertanda − dan bulat: <b>−7</b>. 7 itu positif, 0 bukan negatif, 1/2 itu pecahan."},
+ {t:"sort",topik:"Mengurutkan bilangan",q:"Urutkan dari yang <b>terkecil</b> ke <b>terbesar</b>:",items:["−8","3","0","−2","5"],ans:["−8","−2","0","3","5"],why:"Makin ke kiri di garis bilangan makin kecil: −8 dulu, baru −2, 0, 3, 5."},
+ {t:"mc",topik:"Membandingkan bilangan",q:"Bilangan <b>terbesar</b> dari −9, −4, −11, −1 adalah …",opts:["−9","−4","−11","−1"],ans:3,why:"Di antara bilangan negatif, yang <b>paling dekat nol</b> (−1) adalah yang terbesar."},
+ {t:"tf",topik:"Membandingkan bilangan",q:"Pernyataan: <b>−5 &gt; −8</b>",ans:true,why:"Benar! −5 ada di <b>kanan</b> −8 pada garis bilangan, jadi −5 lebih besar."},
+ {t:"mc",topik:"Menulis bilangan bulat",q:"Lambang bilangan untuk “<b>negatif dua belas</b>” adalah …",opts:["−12","12","−21","12−"],ans:0,why:"“Negatif” = tanda − di depan: <b>−12</b>."},
+ {t:"sort",topik:"Mengurutkan bilangan",q:"Urutkan dari yang <b>terkecil</b> ke <b>terbesar</b>:",items:["4","−3","0","−6","2"],ans:["−6","−3","0","2","4"],why:"−6 paling kiri → paling kecil; 4 paling kanan → paling besar."},
+ {t:"mc",topik:"Mengenal bilangan bulat",q:"Manakah yang <b>BUKAN</b> bilangan bulat?",opts:["−3","0","5","3/4"],ans:3,why:"Bilangan bulat hanya …, −2, −1, 0, 1, 2, … — <b>3/4 pecahan</b>."},
+ {t:"tf",topik:"Membandingkan bilangan",q:"Pernyataan: <b>0 lebih besar dari semua bilangan negatif</b>",ans:true,why:"Benar! Nol selalu di kanan bilangan negatif mana pun."},
+ {t:"mc",topik:"Lawan bilangan",q:"<b>Lawan</b> dari 8 adalah …",opts:["−8","8","0","1/8"],ans:0,why:"Lawannya 8 = bilangan yang sama jauh dari nol tapi arah berlawanan: <b>−8</b>."},
+ {t:"mc",topik:"Membaca bilangan",q:"−15 dibaca …",opts:["negatif lima belas","lima belas negatif","kurang lima belas","negatif satu lima"],ans:0,why:"Tanda − dibaca “negatif” di depan: <b>negatif lima belas</b>."}
+]},
+{id:2,icon:"🌉",name:"Jembatan Garis Bilangan",desc:"Berjalanlah di atas garis bilangan ajaib!",
+ materi:"Letak bilangan • Pergerakan kanan–kiri • Jarak",qs:[
+ {t:"num",topik:"Letak bilangan",q:"Ketuk posisi <b>−4</b> pada garis bilangan, lalu Kunci Jawaban!",min:-10,max:10,start:0,target:-4,why:"−4 = 4 satuan di <b>kiri</b> 0."},
+ {t:"num",topik:"Pergerakan garis bilangan",q:"Mulai di <b>3</b>, berjalan <b>5 langkah ke kiri</b>. Ketuk posisi akhir!",min:-10,max:10,start:3,target:-2,why:"3 − 5 = <b>−2</b>: kelewatan nol!"},
+ {t:"mc",topik:"Letak bilangan",q:"Bilangan yang terletak <b>4 satuan di kanan −3</b> adalah …",opts:["1","−7","7","−1"],ans:0,why:"−3 + 4 = <b>1</b>: jalan 4 ke kanan dari −3."},
+ {t:"tf",topik:"Letak bilangan",q:"Pernyataan: <b>−2 terletak di antara −5 dan 0</b>",ans:true,why:"Benar! Urutannya −5 … −2 … 0 dari kiri ke kanan."},
+ {t:"num",topik:"Pergerakan garis bilangan",q:"Mulai di <b>−6</b>, berjalan <b>8 langkah ke kanan</b>. Ketuk posisi akhir!",min:-10,max:10,start:-6,target:2,why:"−6 + 8 = <b>2</b>."},
+ {t:"mc",topik:"Jarak bilangan",q:"<b>Jarak</b> antara −3 dan 5 pada garis bilangan adalah …",opts:["8","2","−8","7"],ans:0,why:"5 − (−3) = 5 + 3 = <b>8</b> satuan."},
+ {t:"tf",topik:"Urutan garis bilangan",q:"Pernyataan: <b>Makin ke kanan, bilangan makin besar</b>",ans:true,why:"Benar! Itu aturan emas garis bilangan."},
+ {t:"num",topik:"Pergerakan garis bilangan",q:"Mulai di <b>0</b>: <b>7 langkah ke kiri</b>, lalu <b>3 langkah ke kanan</b>. Ketuk posisi akhir!",min:-10,max:10,start:0,target:-4,why:"0 − 7 + 3 = <b>−4</b>."},
+ {t:"mc",topik:"Titik tengah",q:"<b>Titik tengah</b> antara −4 dan 4 adalah …",opts:["0","−2","2","8"],ans:0,why:"Sama jauh 4 satuan dari keduanya: <b>0</b>."},
+ {t:"mc",topik:"Letak bilangan",q:"Bilangan yang <b>5 satuan di kiri 2</b> adalah …",opts:["−3","7","−7","3"],ans:0,why:"2 − 5 = <b>−3</b>: jalan 5 ke kiri dari 2."}
+]},
+{id:3,icon:"🌳",name:"Hutan Penjumlahan",desc:"Jumlahkan kekuatan kristal hijau!",
+ materi:"Penjumlahan bilangan bulat",qs:[
+ {t:"fill",topik:"Penjumlahan",q:"(−7) + 12 = …",ans:5,why:"Dari −7 jalan 12 langkah ke kanan → berhenti di <b>5</b>."},
+ {t:"mc",topik:"Penjumlahan negatif",q:"(−15) + (−8) = …",opts:["−23","23","−7","7"],ans:0,why:"Negatif + negatif = makin negatif: −(15 + 8) = <b>−23</b>."},
+ {t:"num",topik:"Penjumlahan garis bilangan",q:"Selesaikan <b>(−5) + 9</b> — ketuk hasilnya!",min:-10,max:10,start:-5,target:4,why:"−5 + 9 = <b>4</b>."},
+ {t:"mc",topik:"Soal cerita",ctx:"🌡️ Kontekstual",q:"Suhu udara <b>−3°C</b>. Siang hari suhunya <b>naik 10°C</b>. Suhu sekarang …",opts:["7°C","−13°C","13°C","−7°C"],ans:0,why:"Naik = tambah: −3 + 10 = <b>7</b>."},
+ {t:"fill",topik:"Penjumlahan",q:"25 + (−40) = …",ans:-15,why:"25 − 40 = <b>−15</b>: utangnya lebih besar!"},
+ {t:"mc",topik:"Penjumlahan beruntun",q:"(−12) + 7 + (−3) = …",opts:["−8","−22","8","−2"],ans:0,why:"−12 + 7 = −5, lalu −5 + (−3) = <b>−8</b>."},
+ {t:"tf",topik:"Penjumlahan",q:"Pernyataan: <b>(−9) + 4 = −5</b>",ans:true,why:"Benar! −9 + 4 = −(9 − 4) = <b>−5</b>."},
+ {t:"mc",topik:"Soal cerita",ctx:"💰 Kontekstual",q:"Sinta <b>berutang Rp20.000</b> ke temannya, lalu <b>membayar Rp15.000</b>. Kondisi Sinta sekarang …",opts:["−Rp5.000 (masih utang 5 ribu)","Rp5.000 (untung 5 ribu)","−Rp35.000","Rp15.000"],ans:0,why:"−20.000 + 15.000 = <b>−5.000</b>: masih utang 5 ribu."},
+ {t:"steps",topik:"Langkah penyelesaian",q:"Pilih <b>langkah yang benar</b> untuk (−6) + 11:",opts:["Dari −6 jalan 11 langkah ke kanan → berhenti di 5","6 + 11 = 17, lalu tempel tanda − → −17","11 − 6 = 5, lalu tempel tanda − → −5"],ans:0,why:"Tambah = jalan ke kanan. Dari −6 butuh 6 langkah ke 0, sisa 5 → <b>5</b>."},
+ {t:"mc",topik:"Penjumlahan",q:"18 + (−25) = …",opts:["−7","7","43","−43"],ans:0,why:"18 − 25 = <b>−7</b>."}
+]},
+{id:4,icon:"🕳️",name:"Gua Pengurangan",desc:"Buka pintu gua dengan kode pengurangan!",
+ materi:"Pengurangan • Kurang negatif = tambah",qs:[
+ {t:"fill",topik:"Pengurangan negatif",q:"8 − (−4) = …",ans:12,why:"Kurang dengan negatif = <b>balik jadi tambah</b>: 8 + 4 = <b>12</b>."},
+ {t:"mc",topik:"Pengurangan",q:"(−10) − 7 = …",opts:["−17","−3","17","3"],ans:0,why:"Mulai di −10, jalan 7 ke kiri → <b>−17</b>."},
+ {t:"mc",topik:"Pengurangan",q:"5 − 12 = …",opts:["−7","7","−17","17"],ans:0,why:"5 − 12 = −(12 − 5) = <b>−7</b>."},
+ {t:"tf",topik:"Konsep pengurangan",q:"Pernyataan: <b>Mengurangi bilangan negatif sama dengan menambah lawannya</b>",ans:true,why:"Benar! a − (−b) = a + b. Ini kunci gua ini! 🗝️"},
+ {t:"steps",topik:"Langkah penyelesaian",q:"Pilih <b>langkah yang tepat</b> untuk (−3) − (−8):",opts:["(−3) + 8 = 5","(−3) − 8 = −11","8 − 3 = 5, lalu tempel − → −5"],ans:0,why:"−(−8) balik jadi +8: −3 + 8 = <b>5</b>."},
+ {t:"num",topik:"Pengurangan garis bilangan",q:"Selesaikan <b>4 − 9</b> — ketuk hasilnya!",min:-10,max:10,start:4,target:-5,why:"Dari 4 jalan 9 ke kiri → kelewatan nol → <b>−5</b>."},
+ {t:"mc",topik:"Soal cerita",ctx:"🛗 Kontekstual",q:"Lift berada di <b>lantai 2</b>, lalu <b>turun 5 lantai</b>. Posisi lift …",opts:["−3 (basement 3)","7","−7","3"],ans:0,why:"2 − 5 = <b>−3</b> = 3 lantai di bawah nol."},
+ {t:"fill",topik:"Pengurangan negatif",q:"(−15) − (−6) = …",ans:-9,why:"−15 + 6 = <b>−9</b>."},
+ {t:"mc",topik:"Pengurangan",q:"0 − (−11) = …",opts:["11","−11","0","−1"],ans:0,why:"0 + 11 = <b>11</b>."},
+ {t:"tf",topik:"Pengurangan negatif",q:"Pernyataan: <b>7 − (−7) = 0</b>",ans:false,why:"Keliru! 7 − (−7) = 7 + 7 = <b>14</b>, bukan 0."}
+]},
+{id:5,icon:"⛰️",name:"Gunung Perkalian & Pembagian",desc:"Taklukkan aturan tanda dalam waktu terbatas! ⏱️",
+ materi:"Perkalian • Pembagian • Aturan tanda",timed:true,qtime:20,qs:[
+ {t:"fill",topik:"Perkalian",q:"(−6) × 3 = …",ans:-18,why:"Tanda beda → negatif: 6 × 3 = 18, jadi <b>−18</b>."},
+ {t:"fill",topik:"Pembagian",q:"(−24) ÷ (−6) = …",ans:4,why:"Tanda sama → positif: 24 ÷ 6 = <b>4</b>."},
+ {t:"mc",topik:"Perkalian negatif",q:"(−4) × (−5) = …",opts:["20","−20","−9","9"],ans:0,why:"Tanda sama (keduanya −) → <b>positif</b>: 4 × 5 = 20."},
+ {t:"mc",topik:"Pembagian",q:"36 ÷ (−4) = …",opts:["−9","9","−8","8"],ans:0,why:"Tanda beda → <b>negatif</b>: 36 ÷ 4 = 9, jadi −9."},
+ {t:"tf",topik:"Aturan tanda",q:"Pernyataan: <b>Hasil kali dua bilangan negatif selalu positif</b>",ans:true,why:"Benar! (−) × (−) = (+). Selalu!"},
+ {t:"match",topik:"Mencocokkan operasi",q:"Cocokkan setiap operasi dengan hasilnya!",pairs:[["(−3) × 4","−12"],["15 ÷ (−3)","−5"],["(−2) × (−7)","14"],["20 ÷ (−5)","−4"]],why:"(−3)×4=−12 • 15÷(−3)=−5 • (−2)×(−7)=14 • 20÷(−5)=−4. Ingat: sama→+, beda→−!"},
+ {t:"mc",topik:"Memperbaiki kesalahan",q:"Budi menghitung <b>(−12) ÷ (−3) = −4</b>. Di mana kesalahannya?",opts:["Tanda salah: (−) ÷ (−) = +, jadi hasilnya 4","Angkanya salah: 12 ÷ 3 = 6","Tidak ada kesalahan","Seharusnya −12"],ans:0,why:"12 ÷ 3 memang 4, tapi tandanya: <b>sama → positif</b>. Jadi 4, bukan −4."},
+ {t:"fill",topik:"Perkalian beruntun",q:"(−5) × (−5) × (−2) = …",ans:-50,why:"(−5)×(−5)=25, lalu 25×(−2) = <b>−50</b>."},
+ {t:"mc",topik:"Pembagian nol",q:"0 ÷ (−7) = …",opts:["0","−7","7","tidak bisa dihitung"],ans:0,why:"Nol dibagi bilangan apa pun (selain nol) = <b>0</b>."},
+ {t:"tf",topik:"Perkalian",q:"Pernyataan: <b>(−3) × 4 = (−4) × 3</b>",ans:true,why:"Benar! Keduanya = <b>−12</b>."}
+]},
+{id:6,icon:"🏰",name:"Kastel Tantangan Akhir",desc:"Hadapi Raja Kegelapan Minus! 👹",
+ materi:"Operasi campuran • Soal cerita • HOTS",boss:true,qs:[
+ {t:"mc",topik:"Soal cerita",ctx:"💰 Kontekstual",q:"Andi menabung <b>Rp50.000</b>, lalu ia <b>berutang Rp75.000</b> ke kakaknya. Posisi keuangan Andi …",opts:["−Rp25.000","Rp25.000","Rp125.000","−Rp125.000"],ans:0,why:"50.000 + (−75.000) = <b>−25.000</b>: tekor 25 ribu!"},
+ {t:"fill",topik:"Operasi campuran",q:"(−3) × 4 + (−2) × (−5) = …",ans:-2,why:"(−3)×4 = −12; (−2)×(−5) = +10; −12 + 10 = <b>−2</b>."},
+ {t:"mc",topik:"Soal cerita",ctx:"🌡️ Kontekstual",q:"Suhu freezer <b>−18°C</b>. Setelah dikeluarkan, suhunya <b>naik 25°C</b>. Suhu sekarang …",opts:["7°C","−43°C","43°C","−7°C"],ans:0,why:"−18 + 25 = <b>7</b>."},
+ {t:"mc",topik:"HOTS",q:"Dua bilangan bulat <b>jumlahnya −5</b> dan <b>selisihnya</b> (besar − kecil) <b>15</b>. Kedua bilangan itu …",opts:["5 dan −10","10 dan −15","−5 dan 0","−5 dan −10"],ans:0,why:"Uji: 5+(−10)=−5 ✓ dan 5−(−10)=15 ✓. Pilihan lain gagal di salah satu syarat!"},
+ {t:"fill",topik:"Operasi campuran",q:"(−15) + 6 − (−4) = …",ans:-5,why:"−15+6 = −9; −9−(−4) = −9+4 = <b>−5</b>."},
+ {t:"mc",topik:"Soal cerita",ctx:"🎮 Kontekstual",q:"Skor game Bima mula-mula <b>−12</b>, lalu ia mendapat <b>+20 poin</b>. Skor akhir Bima …",opts:["8","−32","32","−8"],ans:0,why:"−12 + 20 = <b>8</b>."},
+ {t:"mc",topik:"HOTS",q:"a dan b bilangan bulat, <b>a &lt; b</b>, <b>a + b = −2</b>, <b>a × b = −15</b>. Maka …",opts:["a = −5, b = 3","a = −3, b = 5","a = 5, b = −3","a = −15, b = 1"],ans:0,why:"Pasangan faktor −15 yang jumlahnya −2 hanya 3+(−5). Karena a&lt;b: <b>a=−5, b=3</b>."},
+ {t:"tf",topik:"Pangkat negatif",q:"Pernyataan: <b>(−2)³ = −8</b>",ans:true,why:"Benar! (−2)×(−2)×(−2) = 4×(−2) = <b>−8</b>."},
+ {t:"mc",topik:"Soal cerita",ctx:"✈️ Kontekstual",q:"Pesawat di ketinggian <b>3000 m</b>, lalu <b>turun 4500 m</b>. Posisi pesawat …",opts:["−1500 m","7500 m","1500 m","−7500 m"],ans:0,why:"3000 − 4500 = <b>−1500</b> (di bawah titik acuan)."},
+ {t:"fill",topik:"Operasi campuran",q:"100 ÷ (−25) × (−3) = …",ans:12,why:"100÷(−25) = −4; −4×(−3) = <b>12</b>."}
+]}
+];
+const BADGES=[
+ {id:"penjelajah",em:"🧭",name:"Penjelajah Angka",desc:"Tuntaskan Gerbang Angka & Jembatan Garis Bilangan",need:[1,2]},
+ {id:"jago",em:"⚔️",name:"Jago Operasi",desc:"Tuntaskan Hutan, Gua, dan Gunung",need:[3,4,5]},
+ {id:"master",em:"👑",name:"Master Bilangan Bulat",desc:"Kalahkan Raja Kegelapan Minus di Kastel!",need:[6]}
+];
+const PRAISE=["Hebat! Kamu berhasil! 🎉","Luar biasa! Teruskan! ⭐","Keren! Otakmu menyala! 🧠","Satu langkah lagi menuju kristal berikutnya! 💎","Mantap, Penjelajah! 🚀"];
+const COMFORT=["Hampir benar, coba periksa tanda negatifnya. 💪","Kesalahan adalah kesempatan untuk belajar. 🌱","Tidak apa-apa! Baca penjelasannya, lalu coba lagi. 🍀"];
+/* ================= STATE & UTIL ================= */
+const $=s=>document.querySelector(s), $$=s=>Array.from(document.querySelectorAll(s));
+const LSKEY="petualanganBilanganBulat.v1";
+let S={name:"",unlocked:1,best:{},stars:{},badges:[],hist:[],set:{sound:true,anim:true}};
+try{const r=localStorage.getItem(LSKEY);if(r){const p=JSON.parse(r);if(p&&typeof p==="object")S=Object.assign(S,p,S.set?{set:Object.assign({sound:true,anim:true},p.set)}:{});}}catch(e){toast("⚠️ Penyimpanan lokal bermasalah — progres mungkin tidak tersimpan.");}
+function save(){try{localStorage.setItem(LSKEY,JSON.stringify(S));}catch(e){}}
+function shuffle(a){a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
+function toast(m){const t=$("#toast");t.textContent=m;t.classList.add("on");clearTimeout(t._h);t._h=setTimeout(()=>t.classList.remove("on"),2600);}
+let backTo="map";
+function show(id){$$(".scr").forEach(s=>s.classList.remove("on"));$("#scr-"+id).classList.add("on");window.scrollTo(0,0);}
+document.addEventListener("click",e=>{const n=e.target.closest("[data-nav]");if(!n)return;
+  const t=n.dataset.nav;
+  if(t==="back")show(backTo);else{if(t!=="game")backTo=t;show(t);if(t==="map")renderMap();if(t==="badges")renderBadges();if(t==="progress")renderProgress();}
+});
+/* ================= SUARA (WebAudio, tanpa file) ================= */
+let AC=null;
+function beep(f,d,type){if(!S.set.sound)return;try{
+  AC=AC||new (window.AudioContext||window.webkitAudioContext)();
+  const o=AC.createOscillator(),g=AC.createGain();o.type=type||"sine";o.frequency.value=f;
+  g.gain.setValueAtTime(.18,AC.currentTime);g.gain.exponentialRampToValueAtTime(.001,AC.currentTime+d);
+  o.connect(g);g.connect(AC.destination);o.start();o.stop(AC.currentTime+d);}catch(e){}}
+const sfx={click:()=>beep(520,.08,"square"),good:()=>{beep(660,.12);setTimeout(()=>beep(880,.16),110);},
+  bad:()=>beep(220,.22,"sawtooth"),win:()=>{[523,659,784,1046].forEach((f,i)=>setTimeout(()=>beep(f,.18),i*130));},
+  star:()=>{beep(990,.1);setTimeout(()=>beep(1320,.2),100);},tick:()=>beep(440,.05)};
+function animOK(){return S.set.anim&&!window.matchMedia("(prefers-reduced-motion: reduce)").matches;}
+/* ================= PETA ================= */
+function stars(n){const s=S.stars[n]||0;return "★".repeat(s)+"☆".repeat(3-s);}
+function renderMap(){
+  $("#mapHello").innerHTML=`Halo, <b>${esc(S.name)||"Penjelajah"}</b>! Pilih wilayah yang sudah terbuka. 💎 Kristal: <b>${Object.keys(S.best).length}/6</b>`;
+  const box=$("#mapList");box.innerHTML="";
+  LEVELS.forEach((L,i)=>{
+    const n=i+1,open=n<=S.unlocked,done=!!S.best[n];
+    const d=document.createElement("div");
+    d.className="mapnode"+(open?"":" locked")+(done?" done":"");
+    d.innerHTML=`<span class="lvnum">Wilayah ${n}</span><span class="ico">${open?L.icon:"🔒"}</span>
+      <div><h3>${L.name}</h3><p>${L.desc}</p><p>${L.materi}</p>
+      <div class="stars">${done?stars(n)+" • Skor terbaik: "+S.best[n]:""}</div></div>
+      <span class="go"><button class="btn sm ${open?"green":"ghost"}" ${open?"":"disabled"} data-play="${n}">${open?(done?"▶️ Main Lagi":"▶️ Main"):"🔒"}</button></span>`;
+    box.appendChild(d);
+  });
+}
+document.addEventListener("click",e=>{const p=e.target.closest("[data-play]");if(p)startLevel(+p.dataset.play);});
+function esc(s){return String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));}
+/* ================= LENCANA ================= */
+function renderBadges(){
+  const g=$("#badgeGrid");g.innerHTML="";
+  BADGES.forEach(b=>{const got=S.badges.includes(b.id);
+    const d=document.createElement("div");d.className="badge "+(got?"got":"lock");
+    d.innerHTML=`<div class="em">${got?b.em:"🔒"}</div><h4>${b.name}</h4><p style="font-size:13.5px;color:var(--mut)">${b.desc}</p>
+      <p style="font-weight:800;color:${got?"var(--yellow-d)":"var(--mut)"}">${got?"✅ Diperoleh!":"🔒 Terkunci"}</p>`;
+    g.appendChild(d);});
+}
+function checkBadges(){
+  BADGES.forEach(b=>{if(!S.badges.includes(b.id)&&b.need.every(n=>S.best[n])){
+    S.badges.push(b.id);save();sfx.win();
+    $("#awEm").textContent=b.em;$("#awName").textContent="🏅 "+b.name+"!";$("#awDesc").textContent=b.desc;
+    $("#ovAward").classList.add("on");}});
+}
+$("#awOk").onclick=()=>$("#ovAward").classList.remove("on");
+/* ================= REKAP ================= */
+function renderProgress(){
+  $("#progHello").innerHTML=`Perkembangan <b>${esc(S.name)||"Penjelajah"}</b> di setiap wilayah:`;
+  let h=`<table class="rec"><tr><th>Wilayah</th><th>Status</th><th>Bintang</th><th>Skor Terbaik</th></tr>`;
+  LEVELS.forEach((L,i)=>{const n=i+1;
+    h+=`<tr><td>${L.icon} ${L.name}</td><td>${S.best[n]?"✅ Tuntas":(n<=S.unlocked?"🟡 Terbuka":"🔒 Terkunci")}</td>
+      <td>${S.best[n]?stars(n):"–"}</td><td>${S.best[n]||"–"}</td></tr>`;});
+  h+=`</table><p style="color:var(--mut);font-size:14px">🏅 Lencana: ${S.badges.length}/3 &nbsp;•&nbsp; Data tersimpan lokal di perangkat ini.</p>`;
+  $("#progTable").innerHTML=h;
+}
+/* ================= ENGINE PERMAINAN ================= */
+let G=null;
+function startLevel(n){
+  const L=LEVELS[n-1];
+  const order=shuffle(L.qs.map((_,i)=>i)).slice(0,8);
+  G={n,L,order,qi:0,score:0,lives:3,combo:0,benar:0,salah:0,topics:{},t0:Date.now(),timeLeft:0,timer:null,lock:false,bossHp:8};
+  backTo="map";show("game");
+  $("#hName").textContent="🤠 "+(S.name||"Penjelajah");
+  $("#hLevel").textContent=`${L.icon} Wil.${n} • Soal 1/8`;
+  $("#bossWrap").classList.toggle("hidden",!L.boss);
+  renderQ();
+}
+function updHUD(){
+  $("#hScore").textContent=G.score;
+  $("#hLives").textContent="❤️".repeat(G.lives)+"🤍".repeat(Math.max(0,3-G.lives));
+  $("#hCombo").classList.toggle("hidden",G.combo<2);
+  $("#hComboN").textContent=G.combo;
+  $("#hLevel").textContent=`${G.L.icon} Wil.${G.n} • Soal ${Math.min(G.qi+1,8)}/8`;
+  if(G.L.boss)$("#bossFill").style.width=(G.bossHp/8*100)+"%";
+}
+function stopTimer(){if(G&&G.timer){clearInterval(G.timer);G.timer=null;}$("#timerWrap").classList.add("hidden");}
+function renderQ(){
+  const L=G.L,q=L.qs[G.order[G.qi]];
+  G.lock=false;updHUD();
+  $("#qCtx").textContent=(q.ctx?q.ctx+" • ":"")+q.topik;
+  $("#qText").innerHTML=q.q;
+  $("#qFb").className="fb";$("#qFb").innerHTML="";
+  $("#btnNext").classList.add("hidden");
+  const A=$("#qArea");A.innerHTML="";
+  stopTimer();
+  if(L.timed){G.timeLeft=L.qtime;$("#timerWrap").classList.remove("hidden");
+    const paint=()=>{$("#timerFill").style.width=(G.timeLeft/L.qtime*100)+"%";};
+    paint();sfx.tick();
+    G.timer=setInterval(()=>{G.timeLeft--;paint();
+      if(G.timeLeft<=3&&G.timeLeft>0)sfx.tick();
+      if(G.timeLeft<=0){stopTimer();onTimeout();}},1000);}
+  ({mc:rqMC,tf:rqTF,sort:rqSort,num:rqNum,match:rqMatch,fill:rqFill,steps:rqSteps})[q.t](A,q);
+}
+function onTimeout(){
+  if(G.lock)return;G.lock=true;
+  feedback(false,"⏰ <b>Waktu habis!</b> "+G.L.qs[G.order[G.qi]].why,true);
+}
+/* ---- tipe: pilihan ganda & langkah ---- */
+function rqMC(A,q){
+  let opts=q.opts.map((o,i)=>({o,i}));
+  if(q.t==="mc")opts=shuffle(opts);
+  const box=document.createElement("div");box.className="opts";
+  opts.forEach(({o,i})=>{const b=document.createElement("button");b.className="opt";b.innerHTML=o;b.dataset.oi=i;
+    b.onclick=()=>answer(i===q.ans,b,box,q);box.appendChild(b);});
+  A.appendChild(box);
+}
+/* ---- tipe: benar/salah ---- */
+function rqTF(A,q){
+  const box=document.createElement("div");box.className="tfrow";
+  [[true,"✅ BENAR"],[false,"❌ SALAH"]].forEach(([v,label])=>{
+    const b=document.createElement("button");b.className="tfib";b.textContent=label;
+    b.onclick=()=>answer(v===q.ans,b,box,q);box.appendChild(b);});
+  A.appendChild(box);
+}
+/* ---- tipe: urutkan (tap-to-place, ramah sentuh) ---- */
+function rqSort(A,q){
+  const pool=shuffle(q.items.map((t,i)=>({t,ok:t})));
+  const row=document.createElement("div");row.className="slotrow";
+  row.innerHTML=`<span style="color:var(--mut);font-size:13px;align-self:center">Ketuk keping di bawah untuk menyusun…</span>`;
+  const chips=document.createElement("div");chips.className="chips";
+  const picked=[];
+  pool.forEach(({t})=>{const c=document.createElement("button");c.className="chip";c.textContent=t;
+    c.onclick=()=>{if(G.lock)return;sfx.click();c.classList.add("used");picked.push({t,el:c});
+      if(row.querySelector("span"))row.innerHTML="";
+      const s=document.createElement("button");s.className="slot";s.textContent=t;
+      s.onclick=()=>{if(G.lock)return;c.classList.remove("used");
+        const ix=picked.findIndex(p=>p.el===c);if(ix>-1)picked.splice(ix,1);s.remove();
+        if(!picked.length)row.innerHTML=`<span style="color:var(--mut);font-size:13px;align-self:center">Ketuk keping di bawah untuk menyusun…</span>`;};
+      row.appendChild(s);};
+    chips.appendChild(c);});
+  A.appendChild(row);A.appendChild(chips);
+  const b=document.createElement("button");b.className="btn green sm";b.textContent="✅ Cek Urutan";
+  b.style.marginTop="6px";
+  b.onclick=()=>{if(G.lock)return;
+    const ok=picked.length===q.ans.length&&picked.every((p,i)=>p.t===q.ans[i]);
+    answer(ok,b,null,q);};
+  A.appendChild(b);
+}
+/* ---- tipe: garis bilangan interaktif ---- */
+function rqNum(A,q){
+  const NS="http://www.w3.org/2000/svg";
+  const svg=document.createElementNS(NS,"svg");
+  svg.setAttribute("viewBox","0 0 640 120");svg.setAttribute("width","640");svg.setAttribute("height","120");
+  svg.style.width="100%";svg.style.height="auto";svg.setAttribute("role","img");
+  const W=640,pad=30,x=v=>pad+(v-q.min)/(q.max-q.min)*(W-2*pad),y=58;
+  const el=(n,at)=>{const e=document.createElementNS(NS,n);for(const k in at)e.setAttribute(k,at[k]);svg.appendChild(e);return e;};
+  el("line",{x1:pad-12,y1:y,x2:W-pad+12,y2:y,stroke:"#7c3aed","stroke-width":3,"stroke-linecap":"round"});
+  for(let v=q.min;v<=q.max;v++){
+    el("line",{x1:x(v),y1:y-6,x2:x(v),y2:y+6,stroke:v===0?"#facc15":"#7c3aed","stroke-width":v===0?3:1.5});
+    const t=el("text",{x:x(v),y:y+26,"text-anchor":"middle",fill:"#5b5b8a","font-size":13,"font-family":"monospace"});t.textContent=v;
+    const c=el("circle",{cx:x(v),cy:y,r:11,fill:"rgba(124,58,237,.12)",stroke:"#7c3aed","stroke-width":1.5,cursor:"pointer"});
+    c.addEventListener("click",()=>{if(G.lock)return;sfx.click();dot.setAttribute("cx",x(v));G._numPick=v;});
+  }
+  const s0=el("circle",{cx:x(q.start),cy:y-24,r:9,fill:"#facc15",stroke:"#a16207","stroke-width":2});
+  const lab=el("text",{x:x(q.start),y:y-42,"text-anchor":"middle",fill:"#a16207","font-size":13,"font-weight":"bold"});lab.textContent="mulai";
+  const dot=el("circle",{cx:x(q.start),cy:y-24,r:11,fill:"#2563eb",stroke:"#1e40af","stroke-width":2,style:"transition:cx .3s"});
+  const dlab=el("text",{x:x(q.start),y:y-42,"text-anchor":"middle",fill:"#1e40af","font-size":13,"font-weight":"bold"});dlab.textContent="🤠";
+  G._numPick=null;
+  A.appendChild(svg);
+  const hint=document.createElement("p");hint.style.cssText="font-size:13.5px;color:var(--mut);margin-top:6px";
+  hint.textContent="Ketuk titik pada garis bilangan untuk menggerakkan penjelajah 🤠, lalu kunci jawabanmu!";
+  A.appendChild(hint);
+  const b=document.createElement("button");b.className="btn green sm";b.textContent="🔒 Kunci Jawaban";b.style.marginTop="8px";
+  b.onclick=()=>{if(G.lock)return;
+    if(G._numPick===null){toast("Ketuk dulu posisi jawabanmu pada garis bilangan!");return;}
+    answer(G._numPick===q.target,b,null,q);};
+  A.appendChild(b);
+}
+/* ---- tipe: mencocokkan ---- */
+function rqMatch(A,q){
+  const left=shuffle(q.pairs.map((p,i)=>({t:p[0],k:i})));
+  const right=shuffle(q.pairs.map((p,i)=>({t:p[1],k:i})));
+  const grid=document.createElement("div");grid.className="matchcol";
+  const colL=document.createElement("div"),colR=document.createElement("div");
+  colL.className="opts";colR.className="opts";colL.style.marginTop="0";colR.style.marginTop="0";
+  let sel=null,done=0;
+  const mk=(c,isL)=>{const b=document.createElement("button");b.className="mcard";b.textContent=c.t;
+    b.onclick=()=>{if(G.lock||c.ok)return;sfx.click();
+      if(isL){if(sel)sel.el.classList.remove("sel");sel={el:b,k:c.k};b.classList.add("sel");}
+      else{if(!sel){toast("Pilih dulu kartu operasinya!");return;}
+        if(sel.k===c.k){b.classList.add("done");sel.el.classList.add("done");b.disabled=true;sel.el.disabled=true;
+          c.ok=true;sel=null;done++;sfx.good();
+          if(done===q.pairs.length)answer(true,b,null,q);}
+        else{const s=sel.el;b.classList.add("sel");
+          setTimeout(()=>{b.classList.remove("sel");s.classList.remove("sel");},450);
+          sel=null;sfx.bad();toast("Belum cocok, coba lagi!");}}};
+    return b;};
+  left.forEach(c=>colL.appendChild(mk(c,true)));
+  right.forEach(c=>colR.appendChild(mk(c,false)));
+  grid.appendChild(colL);grid.appendChild(colR);A.appendChild(grid);
+  const hint=document.createElement("p");hint.style.cssText="font-size:13.5px;color:var(--mut);margin-top:8px";
+  hint.textContent="Ketuk kartu operasi di kiri, lalu ketuk hasil yang cocok di kanan.";A.appendChild(hint);
+}
+/* ---- tipe: isian angka ---- */
+function rqFill(A,q){
+  const row=document.createElement("div");row.className="fillrow";
+  const inp=document.createElement("input");inp.type="number";inp.placeholder="Ketik jawaban…";inp.setAttribute("aria-label","Jawaban angka");
+  inp.style.flex="1";inp.style.minWidth="160px";
+  const b=document.createElement("button");b.className="btn green";b.textContent="✅ Jawab";
+  const go=()=>{if(G.lock)return;
+    if(inp.value===""||isNaN(Number(inp.value))){toast("Ketik dulu jawaban angkamu!");return;}
+    answer(Number(inp.value)===q.ans,b,null,q);};
+  b.onclick=go;inp.addEventListener("keydown",e=>{if(e.key==="Enter")go();});
+  row.appendChild(inp);row.appendChild(b);A.appendChild(row);
+  setTimeout(()=>inp.focus(),350);
+}
+/* ---- tipe: langkah penyelesaian (pilihan ganda tanpa acak) ---- */
+function rqSteps(A,q){
+  const box=document.createElement("div");box.className="opts";
+  q.opts.forEach((o,i)=>{const b=document.createElement("button");b.className="opt";b.innerHTML=(i+1)+". "+o;b.dataset.oi=i;
+    b.onclick=()=>answer(i===q.ans,b,box,q);box.appendChild(b);});
+  A.appendChild(box);
+}
+/* ================= PENILAIAN JAWABAN ================= */
+function answer(ok,btn,box,q){
+  if(G.lock)return;G.lock=true;stopTimer();
+  if(box)box.querySelectorAll("button").forEach(b=>b.disabled=true);
+  const L=G.L;
+  if(ok){
+    G.benar++;G.combo++;
+    let pts=100,extra="";
+    if(L.timed){const bonus=Math.round(50*G.timeLeft/L.qtime);pts+=bonus;if(bonus>0)extra+=` ⚡+${bonus}`;}
+    if(G.combo>0&&G.combo%3===0){pts+=30;extra+=" 🔥KOMBO +30";}
+    G.score+=pts;
+    sfx.good();
+    if(btn&&box){btn.classList.add("ok");
+      box.querySelectorAll(".opt").forEach(b2=>{if(+b2.dataset.oi===q.ans)b2.classList.add("ok");});}
+    if(L.boss&&animOK()){G.bossHp=Math.max(0,G.bossHp-1);$("#scr-game .card").classList.add("shake");setTimeout(()=>$("#scr-game .card").classList.remove("shake"),450);}
+    feedback(true,`🎉 <b>${PRAISE[Math.floor(Math.random()*PRAISE.length)]}</b> +${pts} poin${extra}<br>💡 ${q.why}`,false);
+  }else{
+    G.salah++;G.combo=0;G.lives--;
+    G.topics[q.topik]=(G.topics[q.topik]||0)+1;
+    sfx.bad();
+    if(btn&&box)btn.classList.add("no");
+    const qi=L.qs[G.order[G.qi]];
+    if(box&&(qi.t==="mc"||qi.t==="steps"))box.querySelectorAll(".opt").forEach(b2=>{if(+b2.dataset.oi===qi.ans)b2.classList.add("ok");});
+    if(G.lives<=0){updHUD();feedback(false,`💔 <b>Nyawamu habis!</b><br>💡 ${q.why}`,true);return;}
+    feedback(false,`💪 <b>${COMFORT[Math.floor(Math.random()*COMFORT.length)]}</b><br>💡 ${q.why}`,false);
+  }
+  updHUD();
+}
+function feedback(good,html,dead){
+  const fb=$("#qFb");fb.className="fb show "+(good?"good":"badd");fb.innerHTML=html;
+  const nx=$("#btnNext");
+  if(dead){nx.textContent="💔 Coba Lagi";nx.classList.remove("hidden","green");nx.classList.add("red");
+    nx.onclick=()=>{sfx.click();startLevel(G.n);};}
+  else{nx.textContent=(G.qi>=7?"🏁 Lihat Hasil":"Lanjut ▶");nx.classList.remove("hidden","red");nx.classList.add("green");
+    nx.onclick=()=>{sfx.click();G.qi++;if(G.qi>=8)finishLevel();else renderQ();};}
+  fb.scrollIntoView({behavior:"smooth",block:"nearest"});
+}
+/* ================= SELESAI LEVEL ================= */
+function finishLevel(){
+  stopTimer();
+  const L=G.L,n=G.n;
+  const acc=Math.round(G.benar/8*100);
+  const starN=G.benar>=7?3:G.benar>=5?2:1;
+  const secs=Math.round((Date.now()-G.t0)/1000);
+  const mm=Math.floor(secs/60),ss=secs%60;
+  if(!S.best[n]||G.score>S.best[n])S.best[n]=G.score;
+  if(!S.stars[n]||starN>S.stars[n])S.stars[n]=starN;
+  if(S.unlocked<n+1&&n<6)S.unlocked=n+1;
+  S.hist.push({n,score:G.score,benar:G.benar,t:Date.now()});if(S.hist.length>60)S.hist.shift();
+  save();
+  $("#resArt").textContent=L.boss?"👑":"🏆";
+  $("#resTitle").textContent=L.boss?"Raja Kegelapan Tumbang!":`Wilayah ${n} Tuntas!`;
+  $("#resStars").textContent="★".repeat(starN)+"☆".repeat(3-starN);
+  $("#resName").textContent=S.name||"Penjelajah";
+  $("#resLevel").textContent=`${L.icon} ${L.name}`;
+  $("#resBenar").textContent=G.benar+" soal";
+  $("#resSalah").textContent=G.salah+" soal";
+  $("#resAcc").textContent=acc+"%";
+  $("#resScore").textContent=G.score+" poin";
+  $("#resTime").textContent=`${mm}:${String(ss).padStart(2,"0")}`;
+  $("#resCrystal").textContent="💎 Kristal "+L.name+" diperoleh!";
+  const tops=Object.keys(G.topics).sort((a,b)=>G.topics[b]-G.topics[a]).slice(0,3);
+  $("#resReview").innerHTML=tops.length
+    ?`<h3>📚 Pelajari lagi:</h3><p>${tops.map(t=>"• <b>"+t+"</b>").join("<br>")}</p>`
+    :`<h3>🌟 Sempurna!</h3><p>Tidak ada konsep yang perlu diulang. Kamu luar biasa!</p>`;
+  const nl=$("#btnNextLevel");
+  if(n<6){nl.classList.remove("hidden");nl.innerHTML=`Lanjut ke Wilayah ${n+1} ▶`;
+    nl.onclick=()=>{sfx.click();startLevel(n+1);};}
+  else{nl.classList.remove("hidden");nl.innerHTML="🗺️ Kembali ke Peta";
+    nl.onclick=()=>{sfx.click();renderMap();show("map");};}
+  sfx.star();if(starN===3)setTimeout(()=>sfx.win(),400);
+  show("result");backTo="result";
+  checkBadges();
+}
+$("#btnRetry").onclick=()=>{sfx.click();startLevel(G.n);};
+/* ================= JEDA ================= */
+$("#btnPause").onclick=()=>{sfx.click();stopTimerPause();$("#ovPause").classList.add("on");};
+let pauseT0=0;
+function stopTimerPause(){if(G&&G.timer){clearInterval(G.timer);G.timer=null;pauseT0=Date.now();}}
+$("#btnResume").onclick=()=>{sfx.click();$("#ovPause").classList.remove("on");
+  if(G&&G.L.timed&&!G.lock){G.timeLeft=Math.max(1,G.timeLeft-Math.round((Date.now()-pauseT0)/1000));
+    const L=G.L;$("#timerWrap").classList.remove("hidden");
+    G.timer=setInterval(()=>{G.timeLeft--;$("#timerFill").style.width=(G.timeLeft/L.qtime*100)+"%";
+      if(G.timeLeft<=0){stopTimer();onTimeout();}},1000);}};
+$("#btnRestartLevel").onclick=()=>{sfx.click();$("#ovPause").classList.remove("on");startLevel(G.n);};
+$("#btnQuitMap").onclick=()=>{sfx.click();$("#ovPause").classList.remove("on");G=null;renderMap();show("map");};
+function syncMute(){$("#btnMute").textContent=S.set.sound?"🔊":"🔇";$("#btnPauseMute").textContent=S.set.sound?"🔊 Suara: Nyala":"🔇 Suara: Mati";}
+$("#btnMute").onclick=()=>{S.set.sound=!S.set.sound;save();syncMute();sfx.click();};
+$("#btnPauseMute").onclick=()=>{S.set.sound=!S.set.sound;save();syncMute();};
+/* ================= PROFIL & PENGATURAN ================= */
+$("#btnStart").onclick=()=>{sfx.click();if(S.name){renderMap();show("map");}else show("profile");};
+$("#btnGoMap").onclick=()=>{
+  const v=$("#inpName").value.trim();
+  if(!v){toast("Tulis dulu nama panggilanmu, Penjelajah!");$("#inpName").focus();return;}
+  S.name=v.slice(0,16);save();sfx.win();renderMap();show("map");};
+$("#setSound").onchange=e=>{S.set.sound=e.target.checked;save();syncMute();};
+$("#setAnim").onchange=e=>{S.set.anim=e.target.checked;save();};
+$("#btnReset").onclick=()=>{
+  if(confirm("Hapus SEMUA progres (nama, skor, bintang, lencana)? Tidak dapat dibatalkan!")){
+    try{localStorage.removeItem(LSKEY);}catch(e){}
+    S={name:"",unlocked:1,best:{},stars:{},badges:[],hist:[],set:{sound:true,anim:true}};
+    save();syncMute();$("#setSound").checked=true;$("#setAnim").checked=true;
+    toast("Progres dihapus. Mulai petualangan baru! 🗺️");show("open");initOpen();}};
+/* ================= INIT ================= */
+function initOpen(){
+  const played=Object.keys(S.best).length;
+  $("#welcomeBack").innerHTML=S.name
+    ?`Selamat datang kembali, <b>${esc(S.name)}</b>! 💎 ${played}/6 kristal terkumpul. <button class="btn sm ghost" id="btnCont">▶️ Lanjutkan</button>`
+    :`Belum ada petualangan tersimpan di perangkat ini.`;
+  const c=$("#btnCont");if(c)c.onclick=()=>{sfx.click();renderMap();show("map");};
+}
+document.addEventListener("keydown",e=>{
+  if(e.key==="Escape"&&$("#ovPause").classList.contains("on"))$("#btnResume").click();
+});
+syncMute();
+$("#setSound").checked=S.set.sound;$("#setAnim").checked=S.set.anim;
+initOpen();show("open");
+</script>
+</body>
+</html>
